@@ -19,6 +19,7 @@ const Home = () => {
   
   const startAuction = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
+
     isSubmitting(true)
 
     // Envia a foto do produto para o Storage
@@ -90,7 +91,7 @@ const Home = () => {
             <input type="number" required placeholder='00' min='0' max="59" step="1" value={seconds} onChange={(e) => setSeconds(e.target.value.slice(0, 2))} />
           </div>
 
-          <input type="submit" value="Iniciar" />
+          <input type="submit" value="Iniciar" disabled={submitting} />
         </form>
       </div>
 

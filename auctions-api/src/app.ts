@@ -1,7 +1,7 @@
-import express from 'express'
-import { Server } from 'socket.io'
-import { createServer } from 'http'
 import dotenv from 'dotenv'
+import express from 'express'
+import { createServer } from 'http'
+import { Server } from 'socket.io'
 import { Auction } from './models/Auction'
 import { Bid } from './models/Bid'
 
@@ -9,12 +9,13 @@ dotenv.config()
 
 const app = express()
 
-let messages: Bid[] = []
+let bids: Bid[] = []
 
 export const server = createServer(app)
 const io = new Server(server, {
   cors: {
     origin: [
+      `${process.env.POPULATE_SCRIPT_URL}`,
       `${process.env.AUCTIONEER_APP_URL}`,
       `${process.env.AUCTIONS_APP_URL}`,
     ],
@@ -22,63 +23,56 @@ const io = new Server(server, {
 })
 
 let currentAuction: Auction | null
-let interval: any
+let shortInterval: NodeJS.Timeout
+let longInterval: NodeJS.Timeout
+let afk = 30 * 1000
 
 io.on('connection', (socket) => {
   console.log('Client connected')
 
-  socket.emit('previousMessages', messages)
+  socket.emit('previousMessages', bids)
   socket.emit('currentAuction', currentAuction)
 
-  socket.on('sendNewMessage', (messageObj: Bid) => {
-    console.log(messageObj)
-    messages.push(messageObj)
-    socket.broadcast.emit('messageReceived', messageObj)
+  socket.on('sendNewMessage', (bid: Bid) => {
+    console.log('Novo lance: ', bid);
+    bids.push(bid);
+
+    clearInterval(shortInterval);
+
+    shortInterval = setTimeout(() => {
+      console.log('Leilão cancelado por falta de lances.');
+      socket.emit('cancelAuction');
+    }, afk);
+
+    socket.broadcast.emit('messageReceived', bid)
   })
 
-  socket.on('auctionStarted', (messageObj: Auction) => {
-    currentAuction = messageObj
+  socket.on('auctionStarted', (auction: Auction) => {
+    currentAuction = auction
+    console.log('Leilão iniciado: ', auction.title)
 
-    console.log(messageObj)
-    socket.emit('currentAuction', messageObj)
-    socket.emit('previousMessages', messages)
+    io.sockets.emit('currentAuction', auction)
+    io.sockets.emit('previousMessages', bids)
+    
+    shortInterval = setTimeout(() => {
+      console.log('Leilão cancelado por falta de lances.');
+      socket.emit('timeout');
+    }, afk);
 
-    /**
-     * O bloco a seguir serve apenas para testar
-     * a tela de acompanhamento do leilão ao vivo.
-     * Remover depois.
-     */
-    const names = ['Fulano', 'Beltrano', 'Ciclano']
-    let bidValue = 510
-    interval = setInterval(() => {
-      const username = names[Math.floor(Math.random() * names.length)]
-
-      const bid: Bid = {
-        auctionId: messageObj.id,
-        username,
-        value: bidValue,
-      }
-
-      messages.push(bid)
-
-      console.log(`${username} acabou de dar ${bidValue.toLocaleString()}`)
-
-      bidValue += 50
-
-      socket.emit('messageReceived', bid)
-    }, 5000)
+    longInterval = setTimeout(() => {
+      console.log('Tempo limite do leilão atingido.');
+      socket.emit('timeout');
+    }, auction.timeout * 1000);
   })
 
   socket.on('cancelAuction', () => {
-    clearInterval(interval)
+    clearInterval(shortInterval);
+    clearInterval(longInterval);
 
-    // TODO
-    // Consumir endpoints aqui para salvar bids no banco
-    console.log(messages)
+    console.log('Redefinindo leilão...');
 
-    messages = []
+    bids = []
     currentAuction = null
-
-    socket.emit('currentAuction', null)
+    io.sockets.emit('currentAuction', null);
   })
 })

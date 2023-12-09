@@ -19,7 +19,7 @@ const LiveAuction = () => {
   const { socket } = useContext(SocketContext)
   const bottomEl = useRef<HTMLDivElement>(null)
 
-  const handleCancelAuction = () => {
+  const cancelAuction = () => {
     socket.emit(`${process.env.REACT_APP_CANCEL_AUCTION_EVENT}`)
   }
 
@@ -30,16 +30,37 @@ const LiveAuction = () => {
     setBids(messageObj)
   }, [bids])
 
-  const handleMessageReceived = useCallback((messageObj: Bid) => {
+  const handleMessageReceived = useCallback((bid: Bid) => {
     console.log('Message received')
-    console.log(messageObj)
-
-    const updatedBids = [...bids, messageObj]
+    console.log(bid)
+  
+    const updatedBids = [...bids, bid]
     setBids(updatedBids)
-  }, [bids])
+  }, [bids]);
 
-  socket.once(`${process.env.REACT_APP_PREVIOUS_MESSAGES_EVENT}`, handlePreviousMessages)
-  socket.on(`${process.env.REACT_APP_MESSAGE_RECEIVED_EVENT}`, handleMessageReceived)
+  const handleCancelAuction = useCallback(() => {
+    socket.emit(`${process.env.REACT_APP_CANCEL_AUCTION_EVENT}`);
+  }, []);
+
+  useEffect(() => {
+    socket.on(`${process.env.REACT_APP_MESSAGE_RECEIVED_EVENT}`, handleMessageReceived)
+    return () => {
+      socket.off(`${process.env.REACT_APP_MESSAGE_RECEIVED_EVENT}`);
+    }
+  });
+  useEffect(() => {
+    socket.on(`${process.env.REACT_APP_TIMEOUT_EVENT}`, handleCancelAuction);
+    return () => {
+      socket.off(`${process.env.REACT_APP_TIMEOUT_EVENT}`);
+    }
+  });
+  
+  useEffect(() => {
+    socket.on(`${process.env.REACT_APP_PREVIOUS_MESSAGES_EVENT}`, handlePreviousMessages)
+    return () => {
+      socket.off(`${process.env.REACT_APP_PREVIOUS_MESSAGES_EVENT}`);
+    }
+  }, []);
 
   useEffect(() => {
     bottomEl?.current?.scrollIntoView({ behavior: 'smooth' })
@@ -59,7 +80,7 @@ const LiveAuction = () => {
         <div ref={bottomEl}></div>
       </div>
 
-      <div className={styles.cancelAuctionButton} onClick={handleCancelAuction}>
+      <div className={styles.cancelAuctionButton} onClick={cancelAuction}>
         <span>Finalizar leilão</span>
       </div>
     </div>

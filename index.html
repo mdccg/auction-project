@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Document</title>
+</head>
+<body>
+  <script src="https://cdn.socket.io/4.7.2/socket.io.min.js" integrity="sha384-mZLF4UVrpi/QTWPA7BjNPEnkIfRFn4ZEO3Qt/HFklTJBj/gBOV8G3HcKn4NfQblz" crossorigin="anonymous"></script>
+  <script>
+    const urlParams = new URLSearchParams(window.location.search);
+    const quiet = urlParams.get('quiet');
+
+    const socket = io('http://localhost:3002');
+    const names = ['Abílio', 'Cellbit', 'Diego', 'José', 'Matheus', 'Murilo', 'Márcio', 'Nathan', 'Paulo', 'Rafael', 'Sidney'];
+    const fi = (1 + Math.sqrt(5)) / 2;
+
+    let currentBid = 500;
+    let loop;
+
+    const sendBid = (auction) => {
+      let index = Math.floor(Math.random() * names.length);
+      let username = names.at(index);
+
+      const bid = {
+        username: `${username}`,
+        value: currentBid,
+        auctionId: auction.id,
+      };
+
+      document.writeln(`[${bid.username}]: R$ ${bid.value.toLocaleString(undefined, { maximumFractionDigits: 2 })}<br />`);
+
+      currentBid += (index * fi);
+
+      socket.emit('sendNewMessage', bid);
+    }
+
+    socket.on('messageReceived', (bid) => {
+      document.writeln(`[${bid.username}]: R$ ${bid.value.toLocaleString(undefined, { maximumFractionDigits: 2 })}<br />`);
+    });
+
+    socket.on('currentAuction', async (auction) => {
+      if (auction === null) {
+        clearInterval(loop);
+        console.log('O leilão acabou ou não está ocorrendo!');
+        return;
+      }
+
+      console.log('O leilão começou!');
+      document.write('');
+
+      if (quiet !== 'true') {
+        loop = setInterval(() => sendBid(auction), 5000);
+      }
+    });
+  </script>
+</body>
+</html>
