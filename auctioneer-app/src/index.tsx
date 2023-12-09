@@ -4,18 +4,15 @@ import App from './App'
 import { SocketContextProvider } from './context/SocketContext'
 import './index.css'
 import reportWebVitals from './reportWebVitals'
-import { UserContextProvider } from './context/UserContext'
 
 const rootHTMLElement = document.getElementById('root') as HTMLElement
 const root = ReactDOM.createRoot(rootHTMLElement)
 root.render(
-  <UserContextProvider>
-    <SocketContextProvider>
-      <BrowserRouter>
-        <App />
-      </BrowserRouter>
-    </SocketContextProvider>
-  </UserContextProvider>
+  <SocketContextProvider>
+    <BrowserRouter>
+      <App />
+    </BrowserRouter>
+  </SocketContextProvider>
 )
 
 // If you want to start measuring performance in your app, pass a function

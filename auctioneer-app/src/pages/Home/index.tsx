@@ -7,13 +7,14 @@ import { Auction } from '../../models/Auction'
 import styles from './styles.module.css'
 
 const Home = () => {
+  // TODO remover valores prontos depois
   const [image, setImage] = useState<File | null>(null)
-  const [title, setTitle] = useState<string>('')
-  const [description, setDescription] = useState<string>('')
+  const [title, setTitle] = useState<string>('Kinderovo')
+  const [description, setDescription] = useState<string>('O mais caro do mercado!')
   const [initialBid, setInitialBid] = useState<number>(1)
   const [submitting, isSubmitting] = useState<boolean>(false)
-  const [minutes, setMinutes] = useState<string>('')
-  const [seconds, setSeconds] = useState<string>('')
+  const [minutes, setMinutes] = useState<string>('1')
+  const [seconds, setSeconds] = useState<string>('0')
 
   const { socket } = useContext(SocketContext)
   

@@ -1,10 +1,11 @@
-import { Navigate, useLocation } from 'react-router-dom'
-import { Auction } from '../../models/Auction'
-import styles from './styles.module.css'
 import { useCallback, useContext, useEffect, useRef, useState } from 'react'
-import { Bid } from '../../models/Bid'
+import { Navigate, useLocation } from 'react-router-dom'
 import BidCard from '../../components/BidCard'
 import { SocketContext } from '../../context/SocketContext'
+import { Auction } from '../../models/Auction'
+import { Bid } from '../../models/Bid'
+import styles from './styles.module.css'
+import Timer from '../../components/Timer'
 
 type Location = {
   state?: {
@@ -18,9 +19,43 @@ const LiveAuction = () => {
   const [bids, setBids] = useState<Bid[]>([])
   const { socket } = useContext(SocketContext)
   const bottomEl = useRef<HTMLDivElement>(null)
+  const [longCounter, setLongCounter] = useState<number>(0)
+  const [shortCounter, setShortCounter] = useState<number>(0)
+  let longTimer: NodeJS.Timer
+  let shortTimer: NodeJS.Timer
 
   const cancelAuction = () => {
     socket.emit(`${process.env.REACT_APP_CANCEL_AUCTION_EVENT}`)
+  }
+
+  const setUpLongCounter = (timeout: number) => {
+    if (!auction) {
+      return
+    }
+
+    clearInterval(longTimer)
+    
+    console.log(timeout)
+
+    setLongCounter(timeout)
+    
+    longTimer = (
+      setInterval(() => {
+        setLongCounter((counter) => counter - 1)
+      }, 1000)
+    )
+  }
+
+  const setUpShortCounter = (timeout: number) => {
+    clearInterval(shortTimer)
+    
+    setShortCounter(timeout)
+    
+    shortTimer = (
+      setInterval(() => {
+        setShortCounter((counter) => counter - 1)
+      }, 1000)
+    )
   }
 
   const handlePreviousMessages = useCallback((messageObj: Bid[]) => {
@@ -36,31 +71,75 @@ const LiveAuction = () => {
   
     const updatedBids = [...bids, bid]
     setBids(updatedBids)
-  }, [bids]);
+  }, [bids])
 
-  const handleCancelAuction = useCallback(() => {
-    socket.emit(`${process.env.REACT_APP_CANCEL_AUCTION_EVENT}`);
-  }, []);
+  const handleShortCounter = useCallback((shortCounter: number) => {
+    if (shortCounter === 0) {
+      return
+    }
+
+    console.log('Short counter', shortCounter)
+    setUpShortCounter(shortCounter)
+  }, [])
+
+  const handleLongCounter = useCallback((longCounter: number) => {
+    if (longCounter === 0) {
+      return
+    }
+
+    console.log('Long counter', longCounter)
+    setUpLongCounter(longCounter)
+  }, [])
+
+  const handleTimeout = useCallback(() => {
+    socket.emit(`${process.env.REACT_APP_CANCEL_AUCTION_EVENT}`)
+  }, [])
+
+  useEffect(() => {
+    if (!auction) {
+      return
+    }
+    
+    console.log(auction)
+
+    setUpLongCounter(auction.timeout)
+    setUpShortCounter(30)
+  }, [auction])
 
   useEffect(() => {
     socket.on(`${process.env.REACT_APP_MESSAGE_RECEIVED_EVENT}`, handleMessageReceived)
     return () => {
-      socket.off(`${process.env.REACT_APP_MESSAGE_RECEIVED_EVENT}`);
+      socket.off(`${process.env.REACT_APP_MESSAGE_RECEIVED_EVENT}`)
     }
-  });
+  })
+
   useEffect(() => {
-    socket.on(`${process.env.REACT_APP_TIMEOUT_EVENT}`, handleCancelAuction);
+    socket.on(`${process.env.REACT_APP_TIMEOUT_EVENT}`, handleTimeout)
     return () => {
-      socket.off(`${process.env.REACT_APP_TIMEOUT_EVENT}`);
+      socket.off(`${process.env.REACT_APP_TIMEOUT_EVENT}`)
     }
-  });
+  })
   
   useEffect(() => {
     socket.on(`${process.env.REACT_APP_PREVIOUS_MESSAGES_EVENT}`, handlePreviousMessages)
     return () => {
-      socket.off(`${process.env.REACT_APP_PREVIOUS_MESSAGES_EVENT}`);
+      socket.off(`${process.env.REACT_APP_PREVIOUS_MESSAGES_EVENT}`)
     }
-  }, []);
+  }, [])
+
+  useEffect(() => {
+    socket.on(`${process.env.REACT_APP_SHORT_COUNTER_EVENT}`, handleShortCounter)
+    return () => {
+      socket.off(`${process.env.REACT_APP_SHORT_COUNTER_EVENT}`)
+    }
+  }, [])
+
+  useEffect(() => {
+    socket.on(`${process.env.REACT_APP_LONG_COUNTER_EVENT}`, handleLongCounter)
+    return () => {
+      socket.off(`${process.env.REACT_APP_LONG_COUNTER_EVENT}`)
+    }
+  }, [])
 
   useEffect(() => {
     bottomEl?.current?.scrollIntoView({ behavior: 'smooth' })
@@ -72,6 +151,15 @@ const LiveAuction = () => {
 
   return (
     <div className={styles.container}>
+      <Timer counter={longCounter} />
+      <Timer counter={shortCounter} style={{
+        top: '64px',
+        width: '96px',
+        height: '48px',
+        fontSize: '75%',
+        backgroundColor: '#e74c3c',
+      }} />
+
       {(auction) && <h1 className={styles.auctionTitle}>Leilão ao vivo do item "{auction.title}"</h1>}
 
       <div id='scroll-area' className={styles.liveAuctionArea}>

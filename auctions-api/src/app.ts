@@ -9,8 +9,6 @@ dotenv.config()
 
 const app = express()
 
-let bids: Bid[] = []
-
 export const server = createServer(app)
 const io = new Server(server, {
   cors: {
@@ -22,29 +20,33 @@ const io = new Server(server, {
   },
 })
 
-let currentAuction: Auction | null
+const afk = 30
+
+let bids: Bid[] = []
+let currentAuction: Auction | null = null
 let shortInterval: NodeJS.Timeout
 let longInterval: NodeJS.Timeout
-let afk = 30 * 1000
+let shortCounter = 0
+let longCounter = 0
+let timeout = false
 
 io.on('connection', (socket) => {
   console.log('Client connected')
 
-  socket.emit('previousMessages', bids)
   socket.emit('currentAuction', currentAuction)
+  socket.emit('previousMessages', bids)
+  socket.emit('shortCounter', shortCounter)
+  socket.emit('longCounter', longCounter)
+  socket.emit('timeout', timeout)
 
   socket.on('sendNewMessage', (bid: Bid) => {
-    console.log('Novo lance: ', bid);
-    bids.push(bid);
-
-    clearInterval(shortInterval);
-
-    shortInterval = setTimeout(() => {
-      console.log('Leilão cancelado por falta de lances.');
-      socket.emit('cancelAuction');
-    }, afk);
-
+    console.log('Novo lance: ', bid)
+    
+    bids.push(bid)
+    shortCounter = 0
+    
     socket.broadcast.emit('messageReceived', bid)
+    socket.broadcast.emit('shortCounter', afk)
   })
 
   socket.on('auctionStarted', (auction: Auction) => {
@@ -53,26 +55,41 @@ io.on('connection', (socket) => {
 
     io.sockets.emit('currentAuction', auction)
     io.sockets.emit('previousMessages', bids)
-    
-    shortInterval = setTimeout(() => {
-      console.log('Leilão cancelado por falta de lances.');
-      socket.emit('timeout');
-    }, afk);
+    io.sockets.emit('shortCounter', shortCounter)
+    io.sockets.emit('longCounter', longCounter)
 
-    longInterval = setTimeout(() => {
-      console.log('Tempo limite do leilão atingido.');
-      socket.emit('timeout');
-    }, auction.timeout * 1000);
+    shortInterval = setInterval(() => {
+      shortCounter += 1
+      
+      if (shortCounter >= afk * 1000) {
+        console.log('Leilão cancelado por falta de lances.')
+        timeout = true
+        socket.emit('timeout', timeout)
+      }
+    }, 1000)
+
+    longInterval = setInterval(() => {
+      longCounter += 1
+      
+      if (longCounter >= auction.timeout) {
+        console.log('Tempo limite do leilão atingido.')
+        timeout = true
+        socket.emit('timeout', timeout)
+      }
+    }, 1000)
   })
 
   socket.on('cancelAuction', () => {
-    clearInterval(shortInterval);
-    clearInterval(longInterval);
-
-    console.log('Redefinindo leilão...');
-
     bids = []
     currentAuction = null
-    io.sockets.emit('currentAuction', null);
+    clearInterval(shortInterval)
+    clearInterval(longInterval)
+    shortCounter = 0
+    longCounter = 0
+    timeout = false
+
+    console.log('Leilão finalizado.')
+
+    io.sockets.emit('currentAuction', null)
   })
 })

@@ -11,3 +11,8 @@ body {
   font-family: 'bold';
   src: url(./assets/fonts/Urbanist-Bold.ttf);
 }
+
+@font-face {
+  font-family: 'display';
+  src: url(./assets/fonts/Orbitron-Bold.ttf);
+}
