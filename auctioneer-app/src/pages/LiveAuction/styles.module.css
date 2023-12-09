@@ -18,30 +18,3 @@
   border-radius: 5px;
   overflow: auto;
 }
-
-.cancelAuctionButton {
-  margin-top: 10px;
-
-  background-color: #e74c3c;
-  border-radius: 2px;
-  user-select: none;
-  cursor: pointer;
-
-  width: 224px;
-  height: 36px;
-
-  justify-content: center;
-  align-items: center;
-  display: flex;
-
-  opacity: .85;
-}
-
-.cancelAuctionButton:hover { opacity: .9; }
-.cancelAuctionButton:active { opacity: 1; }
-
-.cancelAuctionButton > span {
-  font-family: 'bold';
-  color: #fff;
-  font-size: 125%;
-}

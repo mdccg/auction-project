@@ -13,9 +13,9 @@ export const server = createServer(app)
 const io = new Server(server, {
   cors: {
     origin: [
-      `${process.env.POPULATE_SCRIPT_URL}`,
-      `${process.env.AUCTIONEER_APP_URL}`,
-      `${process.env.AUCTIONS_APP_URL}`,
+      `${`${process.env.POPULATE_SCRIPT_URL}`}`,
+      `${`${process.env.AUCTIONEER_APP_URL}`}`,
+      `${`${process.env.AUCTIONS_APP_URL}`}`,
     ],
   },
 })
@@ -28,68 +28,61 @@ let shortInterval: NodeJS.Timeout
 let longInterval: NodeJS.Timeout
 let shortCounter = 0
 let longCounter = 0
-let timeout = false
+
+const cancelAuction = () => {
+  io.sockets.emit(`${process.env.REACT_APP_CANCEL_AUCTION_EVENT}`, bids)
+  bids = []
+  currentAuction = null
+  clearInterval(shortInterval)
+  clearInterval(longInterval)
+  shortCounter = 0
+  longCounter = 0
+}
 
 io.on('connection', (socket) => {
   console.log('Client connected')
 
-  socket.emit('currentAuction', currentAuction)
-  socket.emit('previousMessages', bids)
-  socket.emit('shortCounter', shortCounter)
-  socket.emit('longCounter', longCounter)
-  socket.emit('timeout', timeout)
+  socket.emit(`${process.env.REACT_APP_CURRENT_AUCTION_EVENT}`, currentAuction)
+  socket.emit(`${process.env.REACT_APP_PREVIOUS_BIDS_EVENT}`, bids)
+  socket.emit(`${process.env.REACT_APP_LONG_COUNTER_EVENT}`, longCounter)
+  socket.emit(`${process.env.REACT_APP_SHORT_COUNTER_EVENT}`, shortCounter)
 
-  socket.on('sendNewMessage', (bid: Bid) => {
-    console.log('Novo lance: ', bid)
-    
-    bids.push(bid)
-    shortCounter = 0
-    
-    socket.broadcast.emit('messageReceived', bid)
-    socket.broadcast.emit('shortCounter', afk)
-  })
-
-  socket.on('auctionStarted', (auction: Auction) => {
+  socket.on(`${process.env.REACT_APP_AUCTION_STARTED_EVENT}`, (auction: Auction) => {
     currentAuction = auction
-    console.log('Leilão iniciado: ', auction.title)
 
-    io.sockets.emit('currentAuction', auction)
-    io.sockets.emit('previousMessages', bids)
-    io.sockets.emit('shortCounter', shortCounter)
-    io.sockets.emit('longCounter', longCounter)
+    socket.broadcast.emit(`${process.env.REACT_APP_AUCTION_STARTED_EVENT}`, auction)
+
+    console.log('O leilão começou.');
 
     shortInterval = setInterval(() => {
-      shortCounter += 1
+      ++shortCounter
       
       if (shortCounter >= afk * 1000) {
-        console.log('Leilão cancelado por falta de lances.')
-        timeout = true
-        socket.emit('timeout', timeout)
+        console.log('Leilão finalizado porque ninguém deu mais lances.')
+        cancelAuction()
       }
     }, 1000)
 
     longInterval = setInterval(() => {
-      longCounter += 1
+      ++longCounter
       
       if (longCounter >= auction.timeout) {
-        console.log('Tempo limite do leilão atingido.')
-        timeout = true
-        socket.emit('timeout', timeout)
+        console.log('Leilão finalizado porque excedeu o tempo limite.')
+        cancelAuction()
       }
     }, 1000)
   })
 
-  socket.on('cancelAuction', () => {
-    bids = []
-    currentAuction = null
-    clearInterval(shortInterval)
-    clearInterval(longInterval)
-    shortCounter = 0
-    longCounter = 0
-    timeout = false
+  socket.on(`${process.env.REACT_APP_SEND_NEW_BID_EVENT}`, (bid: Bid) => {
+    if (currentAuction === null) {
+      return
+    }
 
-    console.log('Leilão finalizado.')
+    const moneyFormatter = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' })
+    console.log(`${bid.username} deu ${moneyFormatter.format(bid.value)}`)
 
-    io.sockets.emit('currentAuction', null)
+    socket.broadcast.emit(`${process.env.REACT_APP_BID_RECEIVED_EVENT}`, bid)
+    socket.broadcast.emit(`${process.env.REACT_APP_SHORT_COUNTER_EVENT}`, shortCounter)
+    bids.push(bid)
   })
 })

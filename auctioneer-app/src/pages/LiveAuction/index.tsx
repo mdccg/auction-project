@@ -20,13 +20,9 @@ const LiveAuction = () => {
   const { socket } = useContext(SocketContext)
   const bottomEl = useRef<HTMLDivElement>(null)
   const [longCounter, setLongCounter] = useState<number>(0)
-  const [shortCounter, setShortCounter] = useState<number>(0)
+  const [shortCounter, setShortCounter] = useState<number>(30)
   let longTimer: NodeJS.Timer
   let shortTimer: NodeJS.Timer
-
-  const cancelAuction = () => {
-    socket.emit(`${process.env.REACT_APP_CANCEL_AUCTION_EVENT}`)
-  }
 
   const setUpLongCounter = (timeout: number) => {
     if (!auction) {
@@ -35,13 +31,15 @@ const LiveAuction = () => {
 
     clearInterval(longTimer)
     
-    console.log(timeout)
-
     setLongCounter(timeout)
     
     longTimer = (
       setInterval(() => {
         setLongCounter((counter) => counter - 1)
+
+        if (longCounter < 0) {
+          clearInterval(longTimer);
+        }
       }, 1000)
     )
   }
@@ -54,19 +52,23 @@ const LiveAuction = () => {
     shortTimer = (
       setInterval(() => {
         setShortCounter((counter) => counter - 1)
+
+        if (shortCounter < 0) {
+          clearInterval(shortTimer);
+        }
       }, 1000)
     )
   }
 
-  const handlePreviousMessages = useCallback((messageObj: Bid[]) => {
-    console.log('Previous messages')
-    console.log(messageObj)
+  const handlePreviousBids = useCallback((bids: Bid[]) => {
+    console.log('Previous bids')
+    console.log(bids)
 
-    setBids(messageObj)
+    setBids(bids)
   }, [bids])
 
-  const handleMessageReceived = useCallback((bid: Bid) => {
-    console.log('Message received')
+  const handleBidReceived = useCallback((bid: Bid) => {
+    console.log('Bid received')
     console.log(bid)
   
     const updatedBids = [...bids, bid]
@@ -79,7 +81,7 @@ const LiveAuction = () => {
     }
 
     console.log('Short counter', shortCounter)
-    setUpShortCounter(shortCounter)
+    setUpShortCounter(30 - shortCounter)
   }, [])
 
   const handleLongCounter = useCallback((longCounter: number) => {
@@ -91,8 +93,14 @@ const LiveAuction = () => {
     setUpLongCounter(longCounter)
   }, [])
 
-  const handleTimeout = useCallback(() => {
-    socket.emit(`${process.env.REACT_APP_CANCEL_AUCTION_EVENT}`)
+  const handleCancelAuction = useCallback((bids: Bid[]) => {
+    console.log(bids.length === 0 ? 'Cancelado' : 'Finalizado')
+
+    const winner = bids.pop()
+
+    if (winner) {
+      console.log('Vencedor', winner)
+    }
   }, [])
 
   useEffect(() => {
@@ -107,23 +115,23 @@ const LiveAuction = () => {
   }, [auction])
 
   useEffect(() => {
-    socket.on(`${process.env.REACT_APP_MESSAGE_RECEIVED_EVENT}`, handleMessageReceived)
+    socket.on(`${process.env.REACT_APP_BID_RECEIVED_EVENT}`, handleBidReceived)
     return () => {
-      socket.off(`${process.env.REACT_APP_MESSAGE_RECEIVED_EVENT}`)
+      socket.off(`${process.env.REACT_APP_BID_RECEIVED_EVENT}`)
     }
   })
 
   useEffect(() => {
-    socket.on(`${process.env.REACT_APP_TIMEOUT_EVENT}`, handleTimeout)
+    socket.on(`${process.env.REACT_APP_CANCEL_AUCTION_EVENT}`, handleCancelAuction)
     return () => {
-      socket.off(`${process.env.REACT_APP_TIMEOUT_EVENT}`)
+      socket.off(`${process.env.REACT_APP_CANCEL_AUCTION_EVENT}`)
     }
   })
   
   useEffect(() => {
-    socket.on(`${process.env.REACT_APP_PREVIOUS_MESSAGES_EVENT}`, handlePreviousMessages)
+    socket.on(`${process.env.REACT_APP_PREVIOUS_BIDS_EVENT}`, handlePreviousBids)
     return () => {
-      socket.off(`${process.env.REACT_APP_PREVIOUS_MESSAGES_EVENT}`)
+      socket.off(`${process.env.REACT_APP_PREVIOUS_BIDS_EVENT}`)
     }
   }, [])
 
@@ -166,10 +174,6 @@ const LiveAuction = () => {
         {bids.map((b, index) => <BidCard key={index} bid={b} />)}
 
         <div ref={bottomEl}></div>
-      </div>
-
-      <div className={styles.cancelAuctionButton} onClick={cancelAuction}>
-        <span>Finalizar leilão</span>
       </div>
     </div>
   )

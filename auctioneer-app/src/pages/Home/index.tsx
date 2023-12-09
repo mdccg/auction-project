@@ -5,6 +5,7 @@ import { storage } from '../../config/firebase'
 import { SocketContext } from '../../context/SocketContext'
 import { Auction } from '../../models/Auction'
 import styles from './styles.module.css'
+import { useNavigate } from 'react-router-dom'
 
 const Home = () => {
   // TODO remover valores prontos depois
@@ -18,6 +19,8 @@ const Home = () => {
 
   const { socket } = useContext(SocketContext)
   
+  const navigate = useNavigate()
+
   const startAuction = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
 
@@ -33,7 +36,9 @@ const Home = () => {
       const imageURL = await getDownloadURL(storageRef)
       const auction: Auction = { id: uuid, imageURL, title, description, initialBid, timeout }
 
+      navigate('/auction', { state: { auction } })
       socket.emit(`${process.env.REACT_APP_AUCTION_STARTED_EVENT}`, auction)
+    
     } catch (err) {
       console.log(err)
       isSubmitting(false)

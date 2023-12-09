@@ -8,9 +8,13 @@
 - [X] Garantir que `cancelAuction` seja chamado só uma vez
 - [X] Adicionar o cronômetro e suas providências
   - [X] Atribuir uma largura fixa, aumentar o tamanho da fonte e deixá-la em itálico
-- [ ] Adicionar uma tela de erro caso a conexão com o socket seja interrompida
+- [ ] Corrigir o cronômetro vermelho
 - [ ] Adicionar toasts em ambos os apps front-end em caso de desconexão ou algo do gênero
-- [ ] Melhorar a interface visual do app do leiloeiro
 - [ ] Remover todos os ponto e vírgula do código com expressão regular após terminar a atividade
-- [ ] Testar todos os fluxos possíveis de ponta a ponta
 - [ ] Checar todos os comentários no código marcados com `TODO` ou `FIXME`
+- [ ] Testar todos os fluxos possíveis de ponta a ponta
+
+## Caprichos
+
+- [ ] Adicionar uma tela de erro caso a conexão com o socket seja interrompida
+- [ ] Melhorar a interface visual do app do leiloeiro

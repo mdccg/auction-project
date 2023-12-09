@@ -1,5 +1,5 @@
 import { server } from './app'
 
-const PORT = process.env.PORT || 3000
+const PORT = Number(process.env.PORT) || 3002
 
 server.listen(PORT, () => console.log(`App running on port ${PORT}`))

@@ -12,8 +12,14 @@ const Timer: FC<TimerProps> = ({ counter, style }) => {
 
   useEffect(() => {
     const formatTimer = () => {
-      const minutes = `0${Math.floor(counter / 60)}`.slice(-2)
-      const seconds = `0${counter % 60}`.slice(-2)
+      let actualCounter = counter
+      
+      if (actualCounter < 0) {
+        actualCounter = 0
+      }
+
+      const minutes = `0${Math.floor(actualCounter / 60)}`.slice(-2)
+      const seconds = `0${actualCounter % 60}`.slice(-2)
       setMinutes(minutes)
       setSeconds(seconds)
     }
