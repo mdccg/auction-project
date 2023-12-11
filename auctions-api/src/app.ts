@@ -52,12 +52,12 @@ io.on('connection', (socket) => {
 
     socket.broadcast.emit(`${process.env.REACT_APP_AUCTION_STARTED_EVENT}`, auction)
 
-    console.log('O leilão começou.');
+    console.log('O leilão começou.')
 
     shortInterval = setInterval(() => {
       ++shortCounter
       
-      if (shortCounter >= afk * 1000) {
+      if (shortCounter >= afk) {
         console.log('Leilão finalizado porque ninguém deu mais lances.')
         cancelAuction()
       }
@@ -81,8 +81,9 @@ io.on('connection', (socket) => {
     const moneyFormatter = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' })
     console.log(`${bid.username} deu ${moneyFormatter.format(bid.value)}`)
 
+    
     socket.broadcast.emit(`${process.env.REACT_APP_BID_RECEIVED_EVENT}`, bid)
-    socket.broadcast.emit(`${process.env.REACT_APP_SHORT_COUNTER_EVENT}`, shortCounter)
+    shortCounter = 0
     bids.push(bid)
   })
 })

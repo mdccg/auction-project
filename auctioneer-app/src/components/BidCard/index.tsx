@@ -1,4 +1,5 @@
 import { Bid } from '../../models/Bid'
+import { moneyFormatter } from '../../utils'
 import styles from './styles.module.css'
 
 type Props = {
@@ -6,11 +7,6 @@ type Props = {
 }
 
 const BidCard = ({ bid }: Props) => {
-  const moneyFormatter = Intl.NumberFormat('pt-BR', {
-    currency: 'brl',
-    style: 'currency'
-  })
-
   return (
     <div className={styles.card}>
       <span className={styles.username}>{bid.username}:</span>

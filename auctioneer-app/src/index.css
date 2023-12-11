@@ -16,3 +16,7 @@ body {
   font-family: 'display';
   src: url(./assets/fonts/Orbitron-Bold.ttf);
 }
+
+b {
+  font-family: 'bold';
+}

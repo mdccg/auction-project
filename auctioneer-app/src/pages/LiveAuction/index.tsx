@@ -6,6 +6,7 @@ import { Auction } from '../../models/Auction'
 import { Bid } from '../../models/Bid'
 import styles from './styles.module.css'
 import Timer from '../../components/Timer'
+import ResultModal from '../../components/ResultModal'
 
 type Location = {
   state?: {
@@ -20,7 +21,9 @@ const LiveAuction = () => {
   const { socket } = useContext(SocketContext)
   const bottomEl = useRef<HTMLDivElement>(null)
   const [longCounter, setLongCounter] = useState<number>(0)
-  const [shortCounter, setShortCounter] = useState<number>(30)
+  const [shortCounter, setShortCounter] = useState<number>(0)
+  const [resultModalVisible, isResultModalVisible] = useState<boolean>(false)
+  const [winner, setWinner] = useState<Bid | undefined>()
   let longTimer: NodeJS.Timer
   let shortTimer: NodeJS.Timer
 
@@ -38,7 +41,7 @@ const LiveAuction = () => {
         setLongCounter((counter) => counter - 1)
 
         if (longCounter < 0) {
-          clearInterval(longTimer);
+          clearInterval(longTimer)
         }
       }, 1000)
     )
@@ -54,7 +57,7 @@ const LiveAuction = () => {
         setShortCounter((counter) => counter - 1)
 
         if (shortCounter < 0) {
-          clearInterval(shortTimer);
+          clearInterval(shortTimer)
         }
       }, 1000)
     )
@@ -73,6 +76,7 @@ const LiveAuction = () => {
   
     const updatedBids = [...bids, bid]
     setBids(updatedBids)
+    setShortCounter(30)
   }, [bids])
 
   const handleShortCounter = useCallback((shortCounter: number) => {
@@ -94,13 +98,20 @@ const LiveAuction = () => {
   }, [])
 
   const handleCancelAuction = useCallback((bids: Bid[]) => {
-    console.log(bids.length === 0 ? 'Cancelado' : 'Finalizado')
+    if (shortCounter === 1) {
+      setShortCounter(0)
+    }
+
+    clearInterval(shortTimer)
+    clearInterval(longTimer)
 
     const winner = bids.pop()
 
     if (winner) {
-      console.log('Vencedor', winner)
+      setWinner(winner)
     }
+
+    isResultModalVisible(true)
   }, [])
 
   useEffect(() => {
@@ -108,8 +119,6 @@ const LiveAuction = () => {
       return
     }
     
-    console.log(auction)
-
     setUpLongCounter(auction.timeout)
     setUpShortCounter(30)
   }, [auction])
@@ -158,24 +167,36 @@ const LiveAuction = () => {
   }
 
   return (
-    <div className={styles.container}>
-      <Timer counter={longCounter} />
-      <Timer counter={shortCounter} style={{
-        top: '64px',
-        width: '96px',
-        height: '48px',
-        fontSize: '75%',
-        backgroundColor: '#e74c3c',
-      }} />
+    <>
+      {(auction) && (
+        <ResultModal
+          visible={resultModalVisible}
+          winner={winner}
+          auction={auction}
+          longCounter={auction.timeout - longCounter}
+          bids={bids}
+        />
+      )}
 
-      {(auction) && <h1 className={styles.auctionTitle}>Leilão ao vivo do item "{auction.title}"</h1>}
+      <div className={styles.container}>
+        <Timer counter={longCounter} />
+        <Timer counter={shortCounter} style={{
+          top: '64px',
+          width: '96px',
+          height: '48px',
+          fontSize: '75%',
+          backgroundColor: '#e74c3c',
+        }} />
 
-      <div id='scroll-area' className={styles.liveAuctionArea}>
-        {bids.map((b, index) => <BidCard key={index} bid={b} />)}
+        {(auction) && <h1 className={styles.auctionTitle}>Leilão ao vivo do item "{auction.title}"</h1>}
 
-        <div ref={bottomEl}></div>
+        <div id='scroll-area' className={styles.liveAuctionArea}>
+          {bids.map((b, index) => <BidCard key={index} bid={b} />)}
+
+          <div ref={bottomEl}></div>
+        </div>
       </div>
-    </div>
+    </>
   )
 }
 

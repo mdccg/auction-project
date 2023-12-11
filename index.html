@@ -31,7 +31,7 @@
 
     document.title = quiet ? '👀' : '💸'
 
-    const printBid = (bid) => document.writeln(`[${bid.username}]: R$ ${moneyFormatter.format(bid.value)}<br />`)
+    const printBid = (bid) => document.writeln(`[${bid.username}]: ${moneyFormatter.format(bid.value)}<br />`)
 
     const sendBid = (auction) => {
       let index = Math.floor(Math.random() * names.length)
@@ -55,8 +55,16 @@
         return
       }
 
-      console.log('Leiloando', auction.title)
-    });
+      console.log('O leilão começou!')
+      document.write('')
+
+      if (!quiet) {
+        loop = setInterval(() => {
+          let bid = sendBid(auction)
+          socket.emit(env.REACT_APP_SEND_NEW_BID_EVENT, bid)
+        }, 5000)
+      }
+    })
 
     socket.on(env.REACT_APP_PREVIOUS_BIDS_EVENT, (bids) => {
       for (const bid of bids) {
@@ -87,6 +95,8 @@
     })
 
     socket.on(env.REACT_APP_CANCEL_AUCTION_EVENT, (bids) => {
+      clearInterval(loop)
+
       console.log(bids.length === 0 ? 'Cancelado por falta de lances' : 'Finalizado')
     
       const winner = bids.pop()
