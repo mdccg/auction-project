@@ -14,6 +14,33 @@
 
 #auctionList {
   width: 300px;
+  max-height: 80vh;
+  overflow-y: scroll;
+
+  box-sizing: border-box;
+  padding-right: 10px;
+}
+
+/* width */
+#auctionList::-webkit-scrollbar {
+  width: 6px;
+}
+
+/* Track */
+#auctionList::-webkit-scrollbar-track {
+  background: #f5f6fa;
+  border-radius: 8px;
+}
+
+/* Handle */
+#auctionList::-webkit-scrollbar-thumb {
+  border-radius: 8px;
+  background: #dfe6e9;
+}
+
+/* Handle on hover */
+#auctionList::-webkit-scrollbar-thumb:hover {
+  background: #b2bec3;
 }
 
 .blankSpace {

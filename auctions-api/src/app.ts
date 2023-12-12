@@ -55,10 +55,13 @@ const cancelAuction = async (id: string) => {
 io.on('connection', (socket) => {
   console.log('Client connected')
 
-  socket.emit(`${process.env.REACT_APP_CURRENT_AUCTION_EVENT}`, currentAuction)
+  socket.emit(`${process.env.REACT_APP_CURRENT_AUCTION_EVENT}`, { auction: currentAuction, longCounter, shortCounter })
   socket.emit(`${process.env.REACT_APP_PREVIOUS_BIDS_EVENT}`, bids)
-  socket.emit(`${process.env.REACT_APP_LONG_COUNTER_EVENT}`, longCounter)
-  socket.emit(`${process.env.REACT_APP_SHORT_COUNTER_EVENT}`, shortCounter)
+
+  socket.on(`${process.env.REACT_APP_GIMME_CURRENT_DATA_EVENT}`, () => {
+    socket.emit(`${process.env.REACT_APP_CURRENT_AUCTION_EVENT}`, { auction: currentAuction, longCounter, shortCounter })
+    socket.emit(`${process.env.REACT_APP_PREVIOUS_BIDS_EVENT}`, bids)
+  });
 
   socket.on(`${process.env.REACT_APP_AUCTION_STARTED_EVENT}`, async (auction: Auction) => {
     currentAuction = auction

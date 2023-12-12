@@ -9,6 +9,7 @@ import { useNavigate } from 'react-router-dom'
 import AuctionService from '../../services/AuctionService'
 import AuctionDTO from '../../data-transports/AuctionDTO'
 import AuctionCard from '../../components/AuctionCard'
+import { Bid } from '../../models/Bid'
 
 const predefinedValues = {
   title: 'Kinder Ovo',
@@ -34,6 +35,7 @@ const Home = () => {
 
   const [auctionService] = useState<AuctionService>(new AuctionService())
   const [auctions, setAuctions] = useState<AuctionDTO[]>([])
+  const [currentAuction, setCurrentAuction] = useState<Auction | undefined>()
 
   const startAuction = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -59,14 +61,20 @@ const Home = () => {
     }
   }
 
-  const handleCurrentAuction = useCallback((auction: Auction) => {
-    if (auction === null) {
+  const handleCurrentAuction = useCallback((object: {
+    auction: Auction
+    longCounter: number
+    shortCounter: number
+  }) => {
+    if (object.auction === null) {
       return
     }
 
-    // inserir card extra
+    setCurrentAuction(object.auction)
+  }, [])
 
-    // navigate('/auction', { state: { auction } })
+  const handleCancelAuction = useCallback((bids: Bid[]) => {
+    setCurrentAuction(undefined)
   }, [])
 
   useEffect(() => {
@@ -85,14 +93,22 @@ const Home = () => {
     }
   }, [])
 
+  useEffect(() => {
+    socket.on(`${process.env.REACT_APP_CANCEL_AUCTION_EVENT}`, handleCancelAuction)
+    return () => {
+      socket.off(`${process.env.REACT_APP_CANCEL_AUCTION_EVENT}`)
+    }
+  }, [])
+
   return (
     <div className={styles.container}>
-      {(auctions.length > 0) ? (
+      {(currentAuction || auctions.length > 0) ? (
         <div id={styles.auctionList}>
+          {(currentAuction) && <AuctionCard auction={currentAuction} live />}
           {auctions.map((auction) => <AuctionCard key={auction.id} auction={auction} />)}
         </div>
       ) : (
-        <div style={{ userSelect: 'none' }}>&nbsp;</div>
+        <div className={styles.blankSpace}>&nbsp;</div>
       )}
       
       <div className={styles.auctionArea}>

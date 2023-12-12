@@ -79,43 +79,51 @@ const LiveAuction = () => {
     setShortCounter(30)
   }, [bids])
 
-  const handleShortCounter = useCallback((shortCounter: number) => {
-    if (shortCounter === 0) {
-      return
-    }
-
-    console.log('Short counter', shortCounter)
-    setUpShortCounter(30 - shortCounter)
-  }, [])
-
-  const handleLongCounter = useCallback((longCounter: number) => {
-    if (longCounter === 0) {
-      return
-    }
-
-    console.log('Long counter', longCounter)
-    setUpLongCounter(longCounter)
-  }, [])
-
   const handleCancelAuction = useCallback((bids: Bid[]) => {
-    if (shortCounter === 1) {
-      setShortCounter(0)
-    }
-
     clearInterval(shortTimer)
     clearInterval(longTimer)
 
     isResultModalVisible(true)
   }, [])
 
-  useEffect(() => {
+  const handleCounters = useCallback((object: {
+    auction: Auction
+    longCounter: number
+    shortCounter: number
+  }) => {
+    const { longCounter, shortCounter } = object
+
     if (!auction) {
       return
     }
-    
+
+    setShortCounter(30 - shortCounter)
+    setLongCounter(auction.timeout - longCounter)
+  }, [])
+
+  useEffect(() => {
+    socket.emit(`${process.env.REACT_APP_GIMME_CURRENT_DATA_EVENT}`, null)
+  }, [])
+
+  const justOnce = useRef(false)
+
+  useEffect(() => {
+    if (!auction || justOnce.current) {
+      return
+    }
+
+    justOnce.current = true
+
     setUpLongCounter(auction.timeout)
     setUpShortCounter(30)
   }, [auction])
+
+  useEffect(() => {
+    socket.on(`${process.env.REACT_APP_PREVIOUS_BIDS_EVENT}`, handlePreviousBids)
+    return () => {
+      socket.off(`${process.env.REACT_APP_PREVIOUS_BIDS_EVENT}`)
+    }
+  }, [])
 
   useEffect(() => {
     socket.on(`${process.env.REACT_APP_BID_RECEIVED_EVENT}`, handleBidReceived)
@@ -132,23 +140,9 @@ const LiveAuction = () => {
   })
   
   useEffect(() => {
-    socket.on(`${process.env.REACT_APP_PREVIOUS_BIDS_EVENT}`, handlePreviousBids)
+    socket.on(`${process.env.REACT_APP_CURRENT_AUCTION_EVENT}`, handleCounters)
     return () => {
-      socket.off(`${process.env.REACT_APP_PREVIOUS_BIDS_EVENT}`)
-    }
-  }, [])
-
-  useEffect(() => {
-    socket.on(`${process.env.REACT_APP_SHORT_COUNTER_EVENT}`, handleShortCounter)
-    return () => {
-      socket.off(`${process.env.REACT_APP_SHORT_COUNTER_EVENT}`)
-    }
-  }, [])
-
-  useEffect(() => {
-    socket.on(`${process.env.REACT_APP_LONG_COUNTER_EVENT}`, handleLongCounter)
-    return () => {
-      socket.off(`${process.env.REACT_APP_LONG_COUNTER_EVENT}`)
+      socket.off(`${process.env.REACT_APP_CURRENT_AUCTION_EVENT}`)
     }
   }, [])
 

@@ -7,8 +7,8 @@ type TimerProps = {
 }
 
 const Timer: FC<TimerProps> = ({ counter, style }) => {
-  const [minutes, setMinutes] = useState<string>('')
-  const [seconds, setSeconds] = useState<string>('')
+  const [minutes, setMinutes] = useState<string>('--')
+  const [seconds, setSeconds] = useState<string>('--')
 
   useEffect(() => {
     const formatTimer = () => {

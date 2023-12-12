@@ -1,27 +1,34 @@
-import { FC, useState } from 'react'
-import AuctionDTO from '../../data-transports/AuctionDTO'
-import styles from './styles.module.css'
-import RedPulsingDot from '../../assets/images/red-pulsing-dot.gif'
+import { FC, useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import RedPulsingDot from '../../assets/images/red-pulsing-dot.svg'
+import AuctionDTO from '../../data-transports/AuctionDTO'
+import { Auction } from '../../models/Auction'
 import { moneyFormatter } from '../../utils'
+import styles from './styles.module.css'
 
 type AuctionCardProps = {
-  auction: AuctionDTO
+  auction: AuctionDTO | Auction
+  live?: boolean
 }
 
 let size = 50
 
-const AuctionCard: FC<AuctionCardProps> = ({ auction }) => {
+const isDTO = (object: any): object is AuctionDTO => object.status !== undefined && object.finalBid !== undefined
+
+const AuctionCard: FC<AuctionCardProps> = ({ auction, live }) => {
   const navigate = useNavigate()
+
+  const dto = isDTO(auction)
 
   const [description] = useState<string>(
     auction.description.length > size ? `${auction.description.slice(0, size)}...` : auction.description
   )
   const [status] = useState<string>(() => {
+    if (!dto) {
+      return ''
+    }
+
     switch (auction.status) {
-      case 'STARTED':
-        return 'Agora mesmo'
-      
       case 'CANCELED':
         return 'Cancelado'
       
@@ -34,27 +41,30 @@ const AuctionCard: FC<AuctionCardProps> = ({ auction }) => {
   })
 
   const redirect = () => {
-    if (status !== 'Agora mesmo') {
+    if (!live) {
       return
     }
 
     navigate('/auction', { state: { auction } })
   }
 
+  useEffect(() => {
+  }, [])
+
   return (
-    <div className={styles.auctionCard} onClick={redirect} style={{ cursor: status === 'Agora mesmo' ? 'pointer' : 'default' }}>
+    <div className={styles.auctionCard} onClick={redirect} style={{ cursor: live ? 'pointer' : 'default' }}>
       <img className={styles.productPhoto} src={auction.imageURL} alt={`Foto de ${auction.title}`} />
       
       <div className={styles.auctionInfo}>
         <span className={styles.title}>{auction.title}</span>
         <span className={styles.text}>{description}</span>
         
-        <div>
-          <span className={styles.text}>{status}</span>
-          <img className={styles.redDot} src={RedPulsingDot} alt="Em live" style={{ visibility: status === 'Agora mesmo' ? 'visible' : 'hidden' }} />
+        <div className={styles.redDotContainer}>
+          <span className={styles.text}>{live ? 'Agora mesmo' : status}</span>
+          <img className={styles.redDot} src={RedPulsingDot} alt="Em live" style={{ visibility: live ? 'visible' : 'hidden' }} />
         </div>
 
-        {(auction.finalBid) && (
+        {(dto && auction.finalBid) && (
           <span className={styles.small}>Vendido por {moneyFormatter.format(auction.finalBid)}</span>
         )}
       </div>

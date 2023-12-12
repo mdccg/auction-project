@@ -11,12 +11,11 @@
     const env = {
       REACT_APP_CURRENT_AUCTION_EVENT: 'currentAuction',
       REACT_APP_PREVIOUS_BIDS_EVENT: 'previousBids',
-      REACT_APP_SHORT_COUNTER_EVENT: 'shortCounter',
-      REACT_APP_LONG_COUNTER_EVENT: 'longCounter',
       REACT_APP_SEND_NEW_BID_EVENT: 'sendNewBid',
       REACT_APP_BID_RECEIVED_EVENT: 'bidReceived',
       REACT_APP_AUCTION_STARTED_EVENT: 'auctionStarted',
       REACT_APP_CANCEL_AUCTION_EVENT: 'cancelAuction',
+      REACT_APP_GIMME_CURRENT_DATA_EVENT: 'gimmeCurrentData',
     }
 
     const urlParams = new URLSearchParams(window.location.search)
@@ -50,7 +49,7 @@
       return bid
     }
 
-    socket.on(env.REACT_APP_CURRENT_AUCTION_EVENT, (auction) => {
+    socket.on(env.REACT_APP_CURRENT_AUCTION_EVENT, ({ auction }) => {
       if (auction === null) {
         return
       }

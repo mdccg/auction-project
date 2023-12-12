@@ -14,7 +14,7 @@
 
 ~~A página de visualização do leilão deve ter um botão para retornar à página inicial, botão este que só deve ser exibido quando o leilão for finalizado ou cancelado;~~
 
-Por fim, a página inicial deve exibir uma lista com o histórico dos leilões já realizados, informando o seu título, um ícone com a foto do produto, sua descrição e a situação do leilão (finalizado caso o leilão tenha sido finalizado com sucesso, exibindo também o valor do lance do participante vencedor; ou cancelado, no caso do leilão ter sido cancelado por falta de lances).
+~~Por fim, a página inicial deve exibir uma lista com o histórico dos leilões já realizados, informando o seu título, um ícone com a foto do produto, sua descrição e a situação do leilão (finalizado caso o leilão tenha sido finalizado com sucesso, exibindo também o valor do lance do participante vencedor; ou cancelado, no caso do leilão ter sido cancelado por falta de lances).~~
 
 ~~**2 - Implementação do app auctions-api (API do Leilão Virtual)**~~
 
@@ -26,17 +26,18 @@ Por fim, a página inicial deve exibir uma lista com o histórico dos leilões j
 
 ~~O endpoint GET /auctions/:id que retorna os dados do leilão cuja chave primária seja igual a :id;~~
 
-Adicionar os seguintes eventos de websocket necessários para: 
+~~Adicionar os seguintes eventos de websocket necessários para:~~
 
-Notificar todos os participantes sobre o participante vencedor, quando o leilão for finalizado, informando  o participante e o lance vencedor;
+~~Notificar todos os participantes sobre o participante vencedor, quando o leilão for finalizado, informando  o participante e o lance vencedor;~~
 
-Notificar todos os participantes sobre o cancelamento do leilão, quando isto ocorrer;
+~~Notificar todos os participantes sobre o cancelamento do leilão, quando isto ocorrer;~~
 
-Os eventos de websocket devem fazer as devidas manipulações no banco de dados, quando pertinente.
+~~Os eventos de websocket devem fazer as devidas manipulações no banco de dados, quando pertinente.~~
 
 **3 - Implementação do app auctions-app (App do Participante do Leilão Virtual)**
 
 Este app deve conter as seguintes funcionalidades e recursos:
+
 Caso haja algum leilão ocorrendo, a página inicial do app deve exibir os dados do leilão (título, descrição, foto do produto, maior lance atual e tempo restante para finalização do leilão), além de um botão para que o participante possa entrar e participar dele. Caso não haja nenhum leilão ocorrendo no momento, deve ser exibida uma mensagem para notificar tal fato;
 
 Ao clicar para participar de um leilão, o participante deve ser encaminhado para uma página pela qual ele poderá acompanhar o andamento do leilão, além de poder dar um lance nele. O valor do lance deve ser pelo menos R$ 10 superior ao valor do maior lance atual do produto. Lembrando (conforme visto em aula) que ao se enviar um lance por meio do evento sendNewMessage, deve ser preenchido e enviado um objeto do tipo Bid, o qual deve conter o nome do participante, o valor do lance e o id do leilão. Após a finalização ou cancelamento do leilão, o participante não pode enviar um novo lance no leilão (sugestão: desabilite ou faça desaparecer o formulário de envio de novo lance);
