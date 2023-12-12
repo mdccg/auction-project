@@ -23,7 +23,6 @@ const LiveAuction = () => {
   const [longCounter, setLongCounter] = useState<number>(0)
   const [shortCounter, setShortCounter] = useState<number>(0)
   const [resultModalVisible, isResultModalVisible] = useState<boolean>(false)
-  const [winner, setWinner] = useState<Bid | undefined>()
   let longTimer: NodeJS.Timer
   let shortTimer: NodeJS.Timer
 
@@ -75,6 +74,7 @@ const LiveAuction = () => {
     console.log(bid)
   
     const updatedBids = [...bids, bid]
+
     setBids(updatedBids)
     setShortCounter(30)
   }, [bids])
@@ -104,12 +104,6 @@ const LiveAuction = () => {
 
     clearInterval(shortTimer)
     clearInterval(longTimer)
-
-    const winner = bids.pop()
-
-    if (winner) {
-      setWinner(winner)
-    }
 
     isResultModalVisible(true)
   }, [])
@@ -171,7 +165,6 @@ const LiveAuction = () => {
       {(auction) && (
         <ResultModal
           visible={resultModalVisible}
-          winner={winner}
           auction={auction}
           longCounter={auction.timeout - longCounter}
           bids={bids}

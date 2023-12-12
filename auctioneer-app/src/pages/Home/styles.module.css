@@ -1,38 +1,35 @@
 .container {
+  justify-content: space-between;
+  flex-direction: row;
   display: flex;
-  flex-direction: column;
-  padding: 50px 0;
-  align-items: center;
+
+  padding: 20px;
+}
+
+@media only screen and (max-width: 768px) {
+  .container {
+    flex-direction: column-reverse;
+  }
+}
+
+#auctionList {
+  width: 300px;
+}
+
+.blankSpace {
+  user-select: none;
+  width: 300px;
 }
 
 .auctionArea {
   width: 500px;
-  padding: 20px;
+  padding: 50px;
 }
 
 .auctionForm {
   display: flex;
   flex-direction: column;
   align-items: center;
-}
-
-#uploadArea {
-  justify-content: center;
-  flex-direction: column;
-  align-items: center;
-  display: flex;
-
-  border: 4px dashed yellow;
-
-  width: 261.5px;
-}
-
-#uploadArea img {
-  
-}
-
-#uploadArea span {
-  
 }
 
 .auctionForm > div {

@@ -37,6 +37,12 @@
   z-index: 2;
 }
 
+@media only screen and (max-width: 1000px) {
+  #resultModal {
+    max-width: 70vw;
+  }
+}
+
 .heading {
   font-family: 'bold';
   font-size: 200%;

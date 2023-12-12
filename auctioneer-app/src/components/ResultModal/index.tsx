@@ -9,24 +9,34 @@ import { useNavigate } from 'react-router-dom'
 
 type ResultModalProps = {
   visible: boolean
-  winner: Bid | undefined
   auction: Auction
   longCounter: number
   bids: Bid[]
 }
 
-const ResultModal: FC<ResultModalProps> = ({ visible, winner, auction, longCounter, bids }) => {
+const ResultModal: FC<ResultModalProps> = ({ visible, auction, longCounter, bids }) => {
   const navigate = useNavigate()
   
-  const hasWinner = winner !== undefined
-
   const [duration, setDuration] = useState<string>('')
   const [bidsCount, setBidsCount] = useState<number | undefined>()
   const today = new Date().toLocaleDateString()
 
+  const [winner, setWinner] = useState<Bid | null | undefined>()
+  const hasWinner = winner !== null
+
   const hideModal = () => navigate('/')
 
   useEffect(() => {
+    const getWinner = () => {
+      if (bids.length === 0) {
+        setWinner(null)
+        return
+      }
+
+      const winner = [...bids].pop()
+      setWinner(winner)
+    }
+
     const getDuration = () => {
       const minutes = Math.floor(longCounter / 60)
       const seconds = longCounter % 60
@@ -48,11 +58,12 @@ const ResultModal: FC<ResultModalProps> = ({ visible, winner, auction, longCount
       setBidsCount(bids.length - 1)
     }
 
+    getWinner()
     getDuration()
     getBidsCount()
   }, [longCounter, bids])
 
-  if (!visible) {
+  if (!visible || winner === undefined) {
     return <></>
   }
 
@@ -68,10 +79,10 @@ const ResultModal: FC<ResultModalProps> = ({ visible, winner, auction, longCount
               {winner.username} foi o(a) ganhador(a) do produto <b>{auction.title}</b>, valendo
               inicialmente {moneyFormatter.format(auction.initialBid)} e vendido
               por {moneyFormatter.format(winner.value)}.
-              Este leilão durou {duration}.&nbsp;
+              Este leilão durou {duration}.
               {(bidsCount) && (
                 <>
-                  Além disso, antes de finalmente
+                  &nbsp;Além disso, antes de finalmente
                   conseguir o produto {auction.title}, {winner.username} enfrentou
                   impressionantes {bidsCount} lances de concorrentes.
                   Que produto disputado, hein?

@@ -1,4 +1,4 @@
-# auction
+# auction-project
 
 ## *To-do list*
 
@@ -10,6 +10,8 @@
   - [X] Atribuir uma largura fixa, aumentar o tamanho da fonte e deixá-la em itálico
 - [X] Corrigir o cronômetro vermelho
 - [X] Melhorar a interface visual do app do leiloeiro
+- [ ] Retornar um objeto contendo o objeto do leilão, o cronômetro de tempo sem lances e o cronômetro do leilão. Adaptar o app do leiloeiro e remover os sinais `REACT_APP_SHORT_COUNTER_EVENT` e `REACT_APP_LONG_COUNTER_EVENT` dos arquivos de variáveis de ambiente
+- [ ] Listar os leilões na tela inicial do app do leiloeiro e adicionar um link para o leilão atual com `auctions.shift`
 - [ ] Remover todos os ponto e vírgula do código com expressão regular após terminar a atividade
 - [ ] Checar todos os comentários no código marcados com `TODO` ou `FIXME`
 - [ ] Testar todos os fluxos possíveis de ponta a ponta

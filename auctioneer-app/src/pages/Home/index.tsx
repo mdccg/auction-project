@@ -6,6 +6,9 @@ import { SocketContext } from '../../context/SocketContext'
 import { Auction } from '../../models/Auction'
 import styles from './styles.module.css'
 import { useNavigate } from 'react-router-dom'
+import AuctionService from '../../services/AuctionService'
+import AuctionDTO from '../../data-transports/AuctionDTO'
+import AuctionCard from '../../components/AuctionCard'
 
 const predefinedValues = {
   title: 'Kinder Ovo',
@@ -28,6 +31,9 @@ const Home = () => {
   const { socket } = useContext(SocketContext)
   
   const navigate = useNavigate()
+
+  const [auctionService] = useState<AuctionService>(new AuctionService())
+  const [auctions, setAuctions] = useState<AuctionDTO[]>([])
 
   const startAuction = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -58,18 +64,37 @@ const Home = () => {
       return
     }
 
-    navigate('/auction', { state: { auction } })
-  }, []);
+    // inserir card extra
+
+    // navigate('/auction', { state: { auction } })
+  }, [])
+
+  useEffect(() => {
+    const getAuctions = async () => {
+      const auctions = await auctionService.getAuctions()
+      setAuctions(auctions)
+    }
+
+    getAuctions()
+  }, [])
 
   useEffect(() => {
     socket.on(`${process.env.REACT_APP_CURRENT_AUCTION_EVENT}`, handleCurrentAuction)
     return () => {
       socket.off(`${process.env.REACT_APP_CURRENT_AUCTION_EVENT}`)
     }
-  });
+  }, [])
 
   return (
     <div className={styles.container}>
+      {(auctions.length > 0) ? (
+        <div id={styles.auctionList}>
+          {auctions.map((auction) => <AuctionCard key={auction.id} auction={auction} />)}
+        </div>
+      ) : (
+        <div style={{ userSelect: 'none' }}>&nbsp;</div>
+      )}
+      
       <div className={styles.auctionArea}>
         <form
           className={styles.auctionForm}
@@ -87,10 +112,6 @@ const Home = () => {
                 }
               }} />
           </div>
-
-          {/* <div id={styles.uploadArea}>
-            <span>Área de upload</span>
-          </div> */}
 
           <div>
             <label>Título do produto</label>
@@ -117,8 +138,8 @@ const Home = () => {
             <input
               type="number"
               required
-              placeholder='Lance inicial (R$)'
-              min='1'
+              placeholder="Lance inicial (R$)"
+              min="10"
               step="0.01"
               value={initialBid}
               onChange={(e) => setInitialBid(e.target.value)} />
@@ -155,10 +176,12 @@ const Home = () => {
           <div>
             <input type="submit" value="Simbora" disabled={submitting} />
           </div>
+
+          <BeatLoader color='#555' loading={submitting} />
         </form>
       </div>
 
-      <BeatLoader color='#555' loading={submitting} />
+      <div className={styles.blankSpace}>&nbsp;</div>
     </div>
   )
 }

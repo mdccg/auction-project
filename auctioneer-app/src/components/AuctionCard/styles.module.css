@@ -1,0 +1,44 @@
+.auctionCard {
+  align-items: flex-start;
+  flex-direction: row;
+  display: flex;
+
+  border: 2px solid #f5f6fa;
+  border-radius: 4px;
+  padding: 16px 16px 12px;
+
+  margin-bottom: 20px;
+}
+
+.productPhoto {
+  width:  32px;
+  height: 32px;
+
+  border-radius: 50%;
+  margin-right: 10px;
+}
+
+.auctionInfo {
+  flex-direction: column;
+  display: flex;
+}
+
+.title {
+  font-family: 'bold';
+}
+
+.text {
+  font-family: 'regular';
+}
+
+.redDot {
+  width:  8px;
+  height: 8px;
+
+  margin-left: 8px;
+}
+
+.small {
+  font-family: 'regular';
+  font-size: 62.5%;
+}

@@ -1,13 +1,22 @@
+import cors from 'cors'
 import dotenv from 'dotenv'
 import express from 'express'
 import { createServer } from 'http'
 import { Server } from 'socket.io'
+import AuctionController from './controllers/AuctionController'
+import { AppDataSource } from './data-source'
 import { Auction } from './models/Auction'
 import { Bid } from './models/Bid'
+import { auctionsRouter } from './routes/auctions'
 
 dotenv.config()
 
+AppDataSource.initialize()
+
 const app = express()
+
+app.use(cors())
+app.use('/auctions', auctionsRouter)
 
 export const server = createServer(app)
 const io = new Server(server, {
@@ -29,7 +38,11 @@ let longInterval: NodeJS.Timeout
 let shortCounter = 0
 let longCounter = 0
 
-const cancelAuction = () => {
+const auctionController = new AuctionController()
+
+const cancelAuction = async (id: string) => {
+  await auctionController.finishAuction(id, bids)
+
   io.sockets.emit(`${process.env.REACT_APP_CANCEL_AUCTION_EVENT}`, bids)
   bids = []
   currentAuction = null
@@ -47,28 +60,30 @@ io.on('connection', (socket) => {
   socket.emit(`${process.env.REACT_APP_LONG_COUNTER_EVENT}`, longCounter)
   socket.emit(`${process.env.REACT_APP_SHORT_COUNTER_EVENT}`, shortCounter)
 
-  socket.on(`${process.env.REACT_APP_AUCTION_STARTED_EVENT}`, (auction: Auction) => {
+  socket.on(`${process.env.REACT_APP_AUCTION_STARTED_EVENT}`, async (auction: Auction) => {
     currentAuction = auction
+
+    await auctionController.registerAuction(auction)
 
     socket.broadcast.emit(`${process.env.REACT_APP_AUCTION_STARTED_EVENT}`, auction)
 
     console.log('O leilão começou.')
 
-    shortInterval = setInterval(() => {
+    shortInterval = setInterval(async () => {
       ++shortCounter
       
       if (shortCounter >= afk) {
         console.log('Leilão finalizado porque ninguém deu mais lances.')
-        cancelAuction()
+        await cancelAuction(auction.id)
       }
     }, 1000)
 
-    longInterval = setInterval(() => {
+    longInterval = setInterval(async () => {
       ++longCounter
       
       if (longCounter >= auction.timeout) {
         console.log('Leilão finalizado porque excedeu o tempo limite.')
-        cancelAuction()
+        await cancelAuction(auction.id)
       }
     }, 1000)
   })
@@ -81,7 +96,6 @@ io.on('connection', (socket) => {
     const moneyFormatter = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' })
     console.log(`${bid.username} deu ${moneyFormatter.format(bid.value)}`)
 
-    
     socket.broadcast.emit(`${process.env.REACT_APP_BID_RECEIVED_EVENT}`, bid)
     shortCounter = 0
     bids.push(bid)
