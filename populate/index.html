@@ -6,6 +6,7 @@
   <title>Document</title>
 </head>
 <body>
+  <!-- só rodar esse trem com live server que é sucesso -->
   <script src="https://cdn.socket.io/4.7.2/socket.io.min.js" integrity="sha384-mZLF4UVrpi/QTWPA7BjNPEnkIfRFn4ZEO3Qt/HFklTJBj/gBOV8G3HcKn4NfQblz" crossorigin="anonymous"></script>
   <script>
     const env = {
@@ -15,7 +16,6 @@
       REACT_APP_BID_RECEIVED_EVENT: 'bidReceived',
       REACT_APP_AUCTION_STARTED_EVENT: 'auctionStarted',
       REACT_APP_CANCEL_AUCTION_EVENT: 'cancelAuction',
-      REACT_APP_GIMME_CURRENT_DATA_EVENT: 'gimmeCurrentData',
     }
 
     const urlParams = new URLSearchParams(window.location.search)

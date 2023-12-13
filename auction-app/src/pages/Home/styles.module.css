@@ -1,0 +1,68 @@
+.container {
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  display: flex;
+  flex: 1;
+
+  box-sizing: border-box;
+
+  padding: 20px;
+}
+
+@media only screen and (max-width: 768px) {
+  .container {
+    flex-direction: column-reverse;
+  }
+}
+
+.blankSpace {
+  user-select: none;
+  width: 300px;
+}
+
+#notFound {
+  flex-direction: column;
+  display: flex;
+
+  text-align: center;
+}
+
+#notFound > span:first-child {
+  font-family: 'regular';
+  color: #000;
+  font-size: 150%;
+
+  margin-bottom: 10px;
+}
+
+#notFound > span:last-child {
+  font-family: 'regular';
+  color: #2d3436;
+  font-size: 125%;
+}
+
+.higherValueBox {
+  justify-content: center;
+  align-items: center;
+  display: flex;
+
+  width: 100%;
+  height: 50px;
+}
+
+.higherValue {
+  font-family: 'bold';
+  color: #2ecc71;
+  font-size: 125%;
+}
+
+.username {
+  border: 2px solid #ccc;
+  font-family: 'regular';
+  margin-top: 20px;
+  width: 100%;
+  padding: 16px;
+  box-sizing: border-box;
+  border-radius: 16px;
+}

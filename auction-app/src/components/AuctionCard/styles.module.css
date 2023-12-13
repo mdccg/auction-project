@@ -1,0 +1,43 @@
+.auctionCard {
+  flex-direction: column;
+  align-items: center;
+  display: flex;
+
+  border: 2px solid #f5f6fa;
+  border-radius: 4px;
+  padding: 16px;
+  
+  margin-bottom: 20px;
+
+  text-align: center;
+
+  filter: grayscale(1);
+
+  transition: all .5s;
+}
+
+.productPhoto {
+  width:  128px;
+  height: 128px;
+
+  border-radius: 4px;
+}
+
+.title {
+  font-family: 'bold';
+  font-size: 150%;
+}
+
+.text {
+  font-family: 'regular';
+  font-size: 125%;
+}
+
+.invite {
+  margin-top: 10px;
+
+  font-family: 'bold';
+  color: #3498db;  
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+}
